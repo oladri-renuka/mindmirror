@@ -420,14 +420,14 @@ with gr.Blocks(title="MindMirror — AI Interview Coach") as demo:
     with gr.Row():
         if IS_HF:
             gr.LoginButton(scale=1)
-            user_info = gr.Markdown("Sign in with HuggingFace to track your progress →", scale=4)
+            user_info = gr.Markdown("Sign in with HuggingFace to track your progress →")
         else:
             name_input = gr.Textbox(
                 label="Your Name",
                 placeholder="Enter your name to track your progress",
                 scale=3,
             )
-            gr.HTML('<div style="scale:0"></div>', scale=3)   # spacer
+            gr.HTML('<div></div>')
 
     current_user = gr.State(value="")
 
