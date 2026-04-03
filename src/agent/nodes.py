@@ -543,6 +543,9 @@ COMMUNICATION METRICS:
 - Total filler words: {session_stats.get('total_fillers', 0)}
 - Total hedge phrases: {session_stats.get('total_hedges', 0)}
 
+CANDIDATE'S ANSWER:
+"{full_transcript if full_transcript else 'No speech detected'}"
+
 COACHING INTERVENTIONS:
 - Total nudges given: {nudge_count}
 - Nudges: {nudge_texts[:5]}
