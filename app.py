@@ -420,7 +420,6 @@ with gr.Blocks(title="MindMirror — AI Interview Coach") as demo:
     with gr.Row():
         if IS_HF:
             gr.LoginButton(scale=1)
-            gr.LogoutButton(scale=1)
             user_info = gr.Markdown("Sign in with HuggingFace to track your progress →", scale=4)
         else:
             name_input = gr.Textbox(
