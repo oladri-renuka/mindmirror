@@ -26,6 +26,8 @@ license: mit
 
 MindMirror analyzes your face and voice every 2 seconds, detects behavioral signals like eye contact, brow stress, filler words, and speaking pace, then fires live AI coaching nudges and generates a scored report at the end.
 
+![MindMirror demo](browser.gif)
+
 </div>
 
 ---
