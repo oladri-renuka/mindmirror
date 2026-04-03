@@ -347,9 +347,9 @@ def end_session():
     )
 
 
-def update_dashboard():
+def update_dashboard(speech_chunk: str = ""):
     """Called every 2 seconds by Gradio Timer. Does NOT handle webcam display."""
-    result = pipeline.process_tick()
+    result = pipeline.process_tick(external_transcript=speech_chunk)
 
     if result.get("phase") == "coaching" and result.get("state"):
         state_timeline.append((result.get("elapsed", 0), result.get("state", "NEUTRAL")))
@@ -392,7 +392,58 @@ def update_dashboard():
 
 # ── Gradio UI ─────────────────────────────────────────────────────────────────
 
-with gr.Blocks(title="MindMirror — AI Interview Coach") as demo:
+_WEB_SPEECH_JS = """
+function() {
+    window.mindmirrorActive = false;
+    window.mindmirrorRecognition = null;
+    window.mindmirrorTranscript = '';
+
+    function updateGradioTextbox(elemId, value) {
+        const el = document.querySelector('#' + elemId + ' textarea');
+        if (!el) return;
+        const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+        setter.call(el, value);
+        el.dispatchEvent(new Event('input', {bubbles: true}));
+    }
+
+    window.startMindMirror = function() {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) { console.warn('Web Speech API not supported — Whisper fallback active'); return; }
+        window.mindmirrorTranscript = '';
+        window.mindmirrorActive = true;
+        const recognition = new SR();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        recognition.onresult = function(event) {
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                if (event.results[i].isFinal) {
+                    window.mindmirrorTranscript += event.results[i][0].transcript + ' ';
+                }
+            }
+            updateGradioTextbox('speech_chunk', window.mindmirrorTranscript.trim());
+        };
+        recognition.onerror = function(e) { console.error('Speech error:', e.error); };
+        recognition.onend = function() {
+            if (window.mindmirrorActive) { try { recognition.start(); } catch(e) {} }
+        };
+        window.mindmirrorRecognition = recognition;
+        try { recognition.start(); } catch(e) { console.error('Failed to start recognition:', e); }
+    };
+
+    window.stopMindMirror = function() {
+        window.mindmirrorActive = false;
+        if (window.mindmirrorRecognition) {
+            try { window.mindmirrorRecognition.stop(); } catch(e) {}
+            window.mindmirrorRecognition = null;
+        }
+        window.mindmirrorTranscript = '';
+        updateGradioTextbox('speech_chunk', '');
+    };
+}
+"""
+
+with gr.Blocks(title="MindMirror — AI Interview Coach", js=_WEB_SPEECH_JS) as demo:
 
     # ── Header ────────────────────────────────────────────────────────
     gr.HTML("""
@@ -410,6 +461,7 @@ with gr.Blocks(title="MindMirror — AI Interview Coach") as demo:
         )
 
     current_user = gr.State(value="")
+    speech_chunk = gr.Textbox(visible=False, elem_id="speech_chunk", value="")
 
     # ── Session controls ───────────────────────────────────────────────
     with gr.Row():
@@ -447,9 +499,9 @@ with gr.Blocks(title="MindMirror — AI Interview Coach") as demo:
     gr.HTML("""
     <div style="background:#fffbeb;border:1px solid #fbbf24;border-radius:8px;
                 padding:10px 16px;font-family:system-ui;font-size:.9em;color:#92400e;margin:4px 0">
-      <strong>⚠️ Step 1:</strong> Click the microphone button below and allow access &nbsp;|&nbsp;
-      <strong>Step 2:</strong> Allow webcam access above &nbsp;|&nbsp;
-      <strong>Step 3:</strong> Click <em>Start Session</em>
+      <strong>⚠️ Step 1:</strong> Allow webcam access above &nbsp;|&nbsp;
+      <strong>Step 2:</strong> Allow microphone when prompted after clicking Start Session &nbsp;|&nbsp;
+      <strong>Note:</strong> Use Chrome or Edge for best transcription accuracy
     </div>""")
 
     # ── Microphone input (streams audio to pipeline) ───────────────────
@@ -524,14 +576,14 @@ with gr.Blocks(title="MindMirror — AI Interview Coach") as demo:
         inputs=[question_input, name_input],
         outputs=[status_bar, start_btn, end_btn, question_input,
                  nudge_display, report_display, timeline_chart, current_user],
-    )
+    ).then(fn=None, js="() => window.startMindMirror()")
 
     end_btn.click(
         fn=end_session,
         inputs=[],
         outputs=[status_bar, start_btn, end_btn, question_input,
                  report_display, timeline_chart],
-    ).then(
+    ).then(fn=None, js="() => window.stopMindMirror()").then(
         fn=load_history,
         inputs=[current_user],
         outputs=[history_table, progress_chart],
@@ -540,7 +592,7 @@ with gr.Blocks(title="MindMirror — AI Interview Coach") as demo:
     # Timer tick — state/metrics/nudge/timeline only (webcam handled by stream)
     timer.tick(
         fn=update_dashboard,
-        inputs=[],
+        inputs=[speech_chunk],
         outputs=[state_display, metrics_display, nudge_display, timeline_chart],
     )
 

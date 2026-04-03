@@ -87,6 +87,7 @@ class MindMirrorPipeline:
         self._window_start     = 0.0
         self._last_process     = 0.0
         self._last_audio_hash  = None
+        self._ws_transcript_len = 0   # tracks chars of Web Speech API transcript already processed
 
         self._session_active   = False
         self._session_start    = 0.0
@@ -171,8 +172,9 @@ class MindMirrorPipeline:
             total_questions=total_questions,
         )
         self._baseline         = None
-        self._last_audio_hash  = None
-        self._window_start     = time.time()
+        self._last_audio_hash   = None
+        self._ws_transcript_len = 0
+        self._window_start      = time.time()
         self._last_process     = time.time()
         self._session_active   = True
         self._session_start    = time.time()
@@ -191,7 +193,7 @@ class MindMirrorPipeline:
 
         logger.info(f"Session started: '{question}' for '{username}'")
 
-    def process_tick(self) -> dict:
+    def process_tick(self, external_transcript: str = "") -> dict:
         """
         Called every 2 seconds by Gradio Timer.
         Reads from internal buffers, runs the full ML pipeline,
@@ -241,7 +243,13 @@ class MindMirrorPipeline:
         self._last_audio_hash = chunk_hash
 
         # ── Transcribe ────────────────────────────────────────────────
-        transcript     = self._transcriber.transcribe(audio_chunk)
+        # Use Web Speech API transcript if provided, else fall back to Whisper
+        if external_transcript:
+            new_text = external_transcript[self._ws_transcript_len:].strip()
+            self._ws_transcript_len = len(external_transcript)
+            transcript = {"text": new_text, "words": [], "duration": 2.0, "language": "en"}
+        else:
+            transcript = self._transcriber.transcribe(audio_chunk)
         audio_features = extract_audio_feature_vector(audio_chunk, transcript)
 
         # ── Fuse ──────────────────────────────────────────────────────
