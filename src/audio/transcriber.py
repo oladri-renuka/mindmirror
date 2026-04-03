@@ -101,10 +101,11 @@ class Transcriber:
                 language=language,
                 word_timestamps=True,
                 vad_filter=False,           # Off — too aggressive for 2s
-                beam_size=1,                # Fastest, negligible accuracy loss
-                no_speech_threshold=0.8,    # Permissive
-                log_prob_threshold=-1.5,    # Permissive
-                compression_ratio_threshold=2.8
+                beam_size=5,                # Better accuracy
+                no_speech_threshold=0.6,    # Stricter — less noise transcribed as speech
+                log_prob_threshold=-1.0,    # Stricter — drop low-confidence segments
+                compression_ratio_threshold=2.4,
+                condition_on_previous_text=False,  # Avoid hallucination chains
             )
 
             all_text  = []
