@@ -287,27 +287,12 @@ def on_audio_stream(audio):
 def start_session(
     question: str,
     name: str,
-    oauth_profile: gr.OAuthProfile | None = None,
 ):
     global state_timeline, nudge_history
 
-    # Resolve username — OAuth on HF, name input locally
-    if IS_HF:
-        if oauth_profile is None:
-            return (
-                gr.update(value="⚠️ Please sign in with HuggingFace first"),
-                gr.update(interactive=True),
-                gr.update(interactive=False),
-                gr.update(interactive=True),
-                build_nudge_html(None, False),
-                "",
-                build_emotion_timeline_chart([]),
-                "",
-            )
-        username = oauth_profile.username
-    else:
-        username = name.strip()
-        if not username:
+    # Resolve username from name input
+    username = name.strip()
+    if not username:
             return (
                 gr.update(value="⚠️ Please enter your name before starting"),
                 gr.update(interactive=True),
