@@ -29,6 +29,17 @@ load_dotenv()
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
+# ── Download MediaPipe model if missing (needed on HF Spaces) ─────────────────
+_MODEL_PATH = "models/face_landmarker.task"
+_MODEL_URL  = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+
+if not os.path.exists(_MODEL_PATH):
+    import urllib.request
+    os.makedirs("models", exist_ok=True)
+    print(f"Downloading MediaPipe face landmarker model...")
+    urllib.request.urlretrieve(_MODEL_URL, _MODEL_PATH)
+    print("Model downloaded.")
+
 from pipeline import MindMirrorPipeline
 from src.output.session_logger import SessionLogger
 
