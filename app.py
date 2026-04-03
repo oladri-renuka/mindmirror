@@ -416,18 +416,13 @@ with gr.Blocks(title="MindMirror — AI Interview Coach") as demo:
       <p style="color:#6b7280;margin:4px 0 0">Real-time AI Interview Coach</p>
     </div>""")
 
-    # ── Auth row ──────────────────────────────────────────────────────
+    # ── Name input ────────────────────────────────────────────────────
     with gr.Row():
-        if IS_HF:
-            gr.LoginButton(scale=1)
-            user_info = gr.Markdown("Sign in with HuggingFace to track your progress →")
-        else:
-            name_input = gr.Textbox(
-                label="Your Name",
-                placeholder="Enter your name to track your progress",
-                scale=3,
-            )
-            gr.HTML('<div></div>')
+        name_input = gr.Textbox(
+            label="Your Name",
+            placeholder="Enter your name to track your progress",
+            scale=3,
+        )
 
     current_user = gr.State(value="")
 
@@ -541,7 +536,7 @@ with gr.Blocks(title="MindMirror — AI Interview Coach") as demo:
     # Start / End buttons
     start_btn.click(
         fn=start_session,
-        inputs=[question_input, name_input if not IS_HF else gr.State(value="")],
+        inputs=[question_input, name_input],
         outputs=[status_bar, start_btn, end_btn, question_input,
                  nudge_display, report_display, timeline_chart, current_user],
     )
@@ -571,13 +566,6 @@ with gr.Blocks(title="MindMirror — AI Interview Coach") as demo:
                           inputs=[session_num_input, current_user],
                           outputs=[history_report])
 
-    # On HF: show logged-in username on page load
-    if IS_HF:
-        def _show_user(oauth_profile: gr.OAuthProfile | None):
-            if oauth_profile:
-                return f"✅ Signed in as **{oauth_profile.username}**"
-            return "Sign in with HuggingFace to track your progress →"
-        demo.load(fn=_show_user, inputs=None, outputs=[user_info])
 
     # ── Footer ────────────────────────────────────────────────────────
     gr.HTML("""
