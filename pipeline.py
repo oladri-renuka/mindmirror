@@ -67,7 +67,7 @@ class MindMirrorPipeline:
     def __init__(self):
         # ── Vision / audio models ─────────────────────────────────────
         self._tracker     = FaceTracker(model_path="models/face_landmarker.task")
-        self._transcriber = Transcriber(model_size="tiny")
+        self._transcriber = Transcriber(model_size="base")
 
         # ── Thread-safe input buffers ─────────────────────────────────
         # Facial feature vectors — populated by push_video_frame()

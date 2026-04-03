@@ -58,14 +58,23 @@ logger.info(f"LLM provider: {LLM_PROVIDER}")
 def _call_llm(prompt: str, max_tokens: int = 100) -> str:
     """
     Call whichever LLM provider is configured.
+    Falls back to HF Inference API if primary provider fails.
     Returns generated text or empty string on failure.
     """
     if LLM_PROVIDER == "gemini":
-        return _call_gemini(prompt, max_tokens)
+        result = _call_gemini(prompt, max_tokens)
+        if not result:
+            logger.warning("Gemini failed — falling back to HF Inference API")
+            result = _call_hf_inference(prompt, max_tokens)
+        return result
     elif LLM_PROVIDER == "hf":
         return _call_hf_inference(prompt, max_tokens)
     else:
-        return _call_ollama(prompt, max_tokens)
+        result = _call_ollama(prompt, max_tokens)
+        if not result:
+            logger.warning("Ollama failed — falling back to HF Inference API")
+            result = _call_hf_inference(prompt, max_tokens)
+        return result
 
 
 def _call_ollama(prompt: str, max_tokens: int = 100) -> str:
