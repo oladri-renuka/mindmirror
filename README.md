@@ -22,6 +22,7 @@ license: mit
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 **Practice interview answers and get real-time feedback on whether you *look* confident — not just whether your words sound right.**
+![MindMirror dashboard](image.png)
 
 MindMirror analyzes your face and voice every 2 seconds, detects behavioral signals like eye contact, brow stress, filler words, and speaking pace, then fires live AI coaching nudges and generates a scored report at the end.
 
