@@ -1,0 +1,32 @@
+# Secrets — never commit
+.env
+
+# Claude Code local settings
+.claude/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Local session data
+sessions/
+
+# Models (large binary, download separately)
+models/*.task
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Tests (hardware-mode, not applicable to browser deployment)
+tests/
