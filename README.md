@@ -12,7 +12,7 @@ license: mit
 
 <div align="center">
 
-# 🪞 MindMirror
+# MindMirror
 
 ### Real-Time AI Interview Coach — Multimodal Behavioral Analysis
 
